@@ -27,7 +27,7 @@ tools = [
             "name" : "calculator",
             "description" : (
             "Evaluates a SINGLE Python math expression and returns one numeric result. "
-            "Must be one valid expression — do NOT use semicolons or multiple statements. "
+            "Must be one valid expression - do NOT use semicolons or multiple statements. "
             "Example: 'max(69, 64, 83) - min(69, 64, 83)' to get a difference in one call."
         ),
             "parameters" : {

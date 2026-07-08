@@ -99,37 +99,71 @@ Even with all of the above, local models - including `qwen2.5:7b` - are meaningf
 
 ## Core Architecture
 
-Every version follows the same loop, just with more sophistication layered on:
+Every version follows the same loop, just with more sophistication layered on: a planner breaks the request into ordered steps, each step asks the LLM to reason and optionally call a tool, risky tools require human approval, results get logged and checkpointed, and the loop repeats until the plan is done.
+
+![Weather_Tool V6 agent architecture](architecture.svg)
+
+### Plain-Text Architecture Diagram
 
 ```
-User → Planner (V5+) → LLM reasons → needs tool? → yes → dispatch via TOOLS registry
-                                                  → confirm if risky (V6)
-                                                  → execute → append tool result
-                                                  → loop back to LLM
-                                    → no  → return final answer
+                    User Goal
+                        │
+                        ▼
+                     Planner
+                        │
+                        ▼
+                    Steps List
+            [Task 1, Task 2, ..., Task n]
+                        │
+                        ▼
+                     Executor
+                   (LLM reasons
+                   per step, decides
+                    which tool if any)
+                        │
+        ┌───────────────┼───────────────┐
+        ▼               ▼               ▼
+   Weather Tool   Calculator Tool   Save File Tool
+  (get_weather)     (calculator)      (save_file)
+        │               │               │
+        │               │          Human Approval
+        │               │            (y/n gate)
+        │               │               │
+        └───────────────┼───────────────┘
+                        ▼
+                Guardrails & Logging
+             (arg validation, agent.log)
+                        │
+                        ▼
+              Checkpoint + Persist Memory
+          (memory/checkpoint_N.json, session.json)
+                        │
+                        ▼
+                   Final Answer
 ```
 
 ## File Structure
 
 ```
 Weather_Tool/
-├── main.py              # Entry point - loads memory, runs planner + agent loop (OpenAI)
-├── agent.py             # WeatherAgent class - run() and execute_plan() (OpenAI)
-├── planner.py           # create_plan() - decomposes user goal into ordered steps (OpenAI)
-├── llms.py              # ask_llm() (with tools) and ask_llm_with_no_tool() (for planning) (OpenAI)
-├── config.py             # OpenAI client initialization
-├── ollama_model.py       # full local-model equivalent - same feature set, runs via Ollama instead of OpenAI
-├── log.py               # log_info() - structured logging to agent.log
-├── memory.py             # save_memory() / load_memory() - persistent session state
-├── tool_register.py     # TOOLS dict, confirm_tool_with_user(), execute_tool_safely()
-├── tools/
-│   ├── weather_tool.py  # get_weather(city) - wraps wttr.in
-│   ├── calculator.py    # calculator(expression) - AST-restricted safe eval
-│   └── save_file.py     # save_file(text) - folder/file existence checks, auto-rename
-├── memory/               # persistent sessions + plan checkpoints, both OpenAI and Ollama (git-ignored)
-├── output/               # files written by save_file tool (git-ignored)
-├── requirements.txt
-└── agent.log             # structured run log, shared by both versions (git-ignored)
+|-- main.py              # Entry point - loads memory, runs planner + agent loop (OpenAI)
+|-- agent.py             # WeatherAgent class - run() and execute_plan() (OpenAI)
+|-- planner.py           # create_plan() - decomposes user goal into ordered steps (OpenAI)
+|-- llms.py              # ask_llm() (with tools) and ask_llm_with_no_tool() (for planning) (OpenAI)
+|-- config.py            # OpenAI client initialization
+|-- ollama_model.py      # full local-model equivalent - same feature set, runs via Ollama instead of OpenAI
+|-- log.py               # log_info() - structured logging to agent.log
+|-- memory.py            # save_memory() / load_memory() - persistent session state
+|-- tool_register.py     # TOOLS dict, confirm_tool_with_user(), execute_tool_safely()
+|-- tools/
+|   |-- weather_tool.py  # get_weather(city) - wraps wttr.in
+|   |-- calculator.py    # calculator(expression) - AST-restricted safe eval
+|   `-- save_file.py     # save_file(text) - folder/file existence checks, auto-rename
+|-- memory/              # persistent sessions + plan checkpoints, both OpenAI and Ollama (git-ignored)
+|-- output/              # files written by save_file tool (git-ignored)
+|-- architecture.svg     # architecture diagram embedded in this README
+|-- requirements.txt
+`-- agent.log             # structured run log, shared by both versions (git-ignored)
 ```
 
 ## Guardrails / Safety

@@ -1,0 +1,97 @@
+<svg viewBox="0 0 1000 1080" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Weather_Tool V6 Agent Architecture</title>
+<desc>Flowchart showing the user question flowing through a planner, a per-step LLM reasoning and tool execution loop with guardrails and human approval, then checkpointing, persistent memory, and final output. Works identically for the OpenAI and local Ollama backends.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#556070"/>
+  </marker>
+</defs>
+<rect width="1000" height="1080" fill="#FFFFFF"/>
+
+<text x="500" y="34" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#1F2A44">Weather_Tool - V6 Agent Architecture</text>
+<text x="500" y="56" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#667085">Same flow for both backends: OpenAI gpt-4.1 (agent.py) or local Ollama qwen2.5 / llama3.2 (ollama_model.py)</text>
+
+<!-- User Question -->
+<rect x="210" y="76" width="280" height="50" rx="10" fill="#DCE7FB" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="106" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A44">User Question</text>
+<line x1="350" y1="126" x2="350" y2="156" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Planner -->
+<rect x="210" y="156" width="280" height="60" rx="10" fill="#EEF3FC" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="182" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A44">Planner</text>
+<text x="350" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="11.5" fill="#475066">breaks goal into ordered steps</text>
+<line x1="350" y1="216" x2="350" y2="250" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Loop container -->
+<rect x="120" y="250" width="650" height="540" rx="14" fill="none" stroke="#9AA5B1" stroke-width="1.5" stroke-dasharray="6,5"/>
+<text x="142" y="274" font-family="Arial, sans-serif" font-size="11.5" font-weight="700" fill="#667085" letter-spacing="1">REPEATS PER PLAN STEP</text>
+
+<!-- LLM Reasoning -->
+<rect x="210" y="292" width="280" height="60" rx="10" fill="#EEF3FC" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A44">LLM Reasoning</text>
+<text x="350" y="336" text-anchor="middle" font-family="Arial, sans-serif" font-size="11.5" fill="#475066">ask_llm / ask_local_llm</text>
+<text x="350" y="362" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" font-style="italic" fill="#8A93A3">logged to agent.log</text>
+<line x1="350" y1="368" x2="350" y2="386" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Diamond: tool needed -->
+<polygon points="350,388 462,433 350,478 238,433" fill="#EEF3FC" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="428" text-anchor="middle" font-family="Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1F2A44">Tool call</text>
+<text x="350" y="443" text-anchor="middle" font-family="Arial, sans-serif" font-size="12.5" font-weight="600" fill="#1F2A44">needed?</text>
+
+<text x="373" y="465" font-family="Arial, sans-serif" font-size="11.5" fill="#667085">yes</text>
+<line x1="350" y1="478" x2="350" y2="500" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<text x="480" y="425" font-family="Arial, sans-serif" font-size="11.5" fill="#667085">no</text>
+<path d="M462,433 L840,433 L840,860 L490,860" fill="none" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Guardrails -->
+<rect x="210" y="500" width="280" height="60" rx="10" fill="#FFF3E0" stroke="#C9750B" stroke-width="1.5"/>
+<text x="350" y="526" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#5A3A00">Guardrails &amp; Validation</text>
+<text x="350" y="544" text-anchor="middle" font-family="Arial, sans-serif" font-size="11.5" fill="#7A5312">AST whitelist, arg checks</text>
+<line x1="350" y1="560" x2="350" y2="580" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Diamond: risky tool -->
+<polygon points="350,582 462,627 350,672 238,627" fill="#FFF3E0" stroke="#C9750B" stroke-width="1.5"/>
+<text x="350" y="622" text-anchor="middle" font-family="Arial, sans-serif" font-size="12.5" font-weight="600" fill="#5A3A00">Risky tool?</text>
+<text x="350" y="638" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7A5312">(save_file)</text>
+
+<text x="373" y="660" font-family="Arial, sans-serif" font-size="11.5" fill="#667085">no</text>
+<line x1="350" y1="672" x2="350" y2="700" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<text x="475" y="618" font-family="Arial, sans-serif" font-size="11.5" fill="#667085">yes</text>
+<path d="M462,627 L560,627 L560,700" fill="none" stroke="#556070" stroke-width="1.5"/>
+
+<!-- Human Approval -->
+<rect x="470" y="580" width="180" height="50" rx="10" fill="#FFF3E0" stroke="#C9750B" stroke-width="1.5"/>
+<text x="560" y="601" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="600" fill="#5A3A00">Human Approval</text>
+<text x="560" y="617" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" fill="#7A5312">confirm_tool_with_user (y/n)</text>
+<path d="M560,630 L560,700 L490,700" fill="none" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Execute Tool -->
+<rect x="210" y="700" width="280" height="60" rx="10" fill="#EEF3FC" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="726" text-anchor="middle" font-family="Arial, sans-serif" font-size="14.5" font-weight="600" fill="#1F2A44">Execute Tool</text>
+<text x="350" y="744" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" fill="#475066">get_weather · calculator · save_file</text>
+<text x="350" y="770" text-anchor="middle" font-family="Arial, sans-serif" font-size="10.5" font-style="italic" fill="#8A93A3">result &amp; log written to agent.log</text>
+
+<!-- Loop back arrow -->
+<path d="M210,730 L165,730 L165,322 L208,322" fill="none" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="130" y="520" font-family="Arial, sans-serif" font-size="11" fill="#667085" transform="rotate(-90 130 520)">append result, ask LLM again</text>
+
+<!-- Checkpoint -->
+<rect x="210" y="820" width="280" height="55" rx="10" fill="#F2F2F2" stroke="#667085" stroke-width="1.5"/>
+<text x="350" y="843" text-anchor="middle" font-family="Arial, sans-serif" font-size="14.5" font-weight="600" fill="#333A45">Save Checkpoint</text>
+<text x="350" y="861" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#5B6472">memory/checkpoint_N.json</text>
+<line x1="350" y1="875" x2="350" y2="896" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Persist Memory -->
+<rect x="210" y="896" width="280" height="55" rx="10" fill="#F2F2F2" stroke="#667085" stroke-width="1.5"/>
+<text x="350" y="919" text-anchor="middle" font-family="Arial, sans-serif" font-size="14.5" font-weight="600" fill="#333A45">Persist Memory</text>
+<text x="350" y="937" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#5B6472">memory/session.json, saved every turn</text>
+<line x1="350" y1="951" x2="350" y2="972" stroke="#556070" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+<!-- Output -->
+<rect x="210" y="972" width="280" height="50" rx="10" fill="#DCE7FB" stroke="#3B5FC4" stroke-width="1.5"/>
+<text x="350" y="1002" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="600" fill="#1F2A44">Output to User</text>
+
+<text x="500" y="1058" text-anchor="middle" font-family="Arial, sans-serif" font-size="11.5" fill="#8A93A3">Blue = flow · Amber = safety/guardrails · Gray = persistence</text>
+</svg>
