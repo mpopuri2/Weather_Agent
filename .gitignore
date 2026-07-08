@@ -1,0 +1,20 @@
+# Environment / secrets
+.env
+
+# Runtime-generated memory & checkpoints (both OpenAI and Ollama versions -
+# ignore the whole folder rather than enumerating filenames, since the app
+# recreates it via os.makedirs() and new naming patterns keep getting added)
+memory/
+
+# Tool output
+output/
+
+# Logs
+agent.log
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
